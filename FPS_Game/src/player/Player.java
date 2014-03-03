@@ -29,7 +29,7 @@ public class Player
 		mouseSensitivity = 0; // default 20 ( box for mouse to move in )
 		
 		//	regular
-		moveSpeed = 60; // default 50
+		moveSpeed = 50; // default 50
 
 		try
 		{

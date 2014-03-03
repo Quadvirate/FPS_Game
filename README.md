@@ -1,4 +1,4 @@
 FPS_Game
 ========
 
-An ambitious project to make a FPS game by early May.
+It is an ambitious attempt to create a FPS_Game by early May.

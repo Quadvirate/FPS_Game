@@ -3,6 +3,7 @@ package core;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -18,16 +19,14 @@ public class Engine
 {
 	
 	public Player testPlayer;
-	
-	private Scanner mapReader;
-	private ArrayList<String> mapText;
 
 	private boolean initComplete;
 	
-	private byte[][][] map;
+	private HashMap< String, Byte > map = new HashMap< String, Byte >();
 
 	public void start()
 	{
+		setNatives();
 		setUpDisplay();
 		setUpConfig();
 		//	display until close requested or esc is pressed
@@ -40,12 +39,19 @@ public class Engine
 			}
 			mainLoop();
 			Display.update();
-			Display.sync( 60 );
+			Display.sync( Integer.MAX_VALUE );
 		}
 		Display.destroy();
 	}
+	
+	public void setNatives()
+	{
+		String os = System.getProperty( "os.name" );
+		if( os.toLowerCase().indexOf( "windows" ) != -1 ) System.setProperty( "org.lwjgl.librarypath", System.getProperty( "user.dir" ) + File.separator + "lwjgl-2.9.0" + File.separator + "native" + File.separator + "windows" );
+		else if( os.toLowerCase().indexOf( "mac" ) != -1 ) System.setProperty( "org.lwjgl.librarypath", System.getProperty( "user.dir" ) + File.separator + "lwjgl-2.9.0" + File.separator + "native" + File.separator + "macosx" );
+	}
 
-	private void setUpDisplay()
+	public void setUpDisplay()
 	{
 		try
 		{
@@ -69,7 +75,7 @@ public class Engine
 		}
 	}
 
-	private void setUpConfig()
+	public void setUpConfig()
 	{
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
@@ -92,40 +98,39 @@ public class Engine
 		catch( LWJGLException e1 ){}
 	}
 
-	private void loadMap()
+	private void loadMap( String mapName )
 	{
 		//	load map into an array of Strings
 		try
 		{
-			mapReader = new Scanner( new File( "res/map.txt" ) );
-			mapText = new ArrayList<String>();
-			while( mapReader.hasNextLine() ) mapText.add( mapReader.nextLine() );
-			System.out.println( "map loaded" );
+			Scanner mapReader = new Scanner( new File( "res/" + mapName + ".txt" ) );
+			while( mapReader.hasNextLine() )
+			{
+				//	load map
+				String[] currStr = mapReader.nextLine().split( "," );
+				byte val = Byte.valueOf( currStr[1] );
+				map.put( currStr[2] + "," + currStr[3] + "," + currStr[4], val );
+			}
+			mapReader.close();
+			System.out.println( "\"" + mapName + "\" map loaded" );
 		}
 		catch( FileNotFoundException e )
 		{
-			System.out.println( "failed to load map" );
-		}
-		String[] firstLine = mapText.get( 0 ).split( "," );
-		map = new byte[Integer.valueOf( firstLine[1] )][Integer.valueOf( firstLine[2] )][Integer.valueOf( firstLine[3] )];
-		
-		//	load map
-		for( int i = 1; i < mapText.size(); i++ )
-		{
-			String[] currStr = mapText.get( i ).split( "," );
-			byte val = Byte.valueOf( currStr[1] );
-			map[Integer.valueOf( currStr[2] )][Integer.valueOf( currStr[3] )][Integer.valueOf( currStr[4] )] = val;
+			System.out.println( "failed to load \"" + mapName + "\" map" );
 		}
 	}
 	
 	private void init()
 	{
 		testPlayer = new Player();
-		loadMap();
+		loadMap( "pinpoint_ish" );
 	}
 
 	private void mainLoop()
 	{
+		//	track fps
+		manageFPS();
+		
 		//	background red
 		glClearColor( .4f, .4f, .4f, 1 );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -139,29 +144,47 @@ public class Engine
 		//	block size
 		glScaled( 150, 150, 150 );
 		
-		glColor3f( 0, .3f, .3f );
+		glLineWidth( 3 );
 		
 		//	go throgh map
-		for( int i = 0; i < map.length; i++ )
+		for( String key : map.keySet() )
 		{
-			for( int j = 0; j < map[0].length; j++ )
+			glPushMatrix();
+
+			String[] currStr = key.split( "," );
+			glTranslated( Integer.valueOf( currStr[0] ) * 2, Integer.valueOf( currStr[2] ) * 2, -Integer.valueOf( currStr[1] ) * 8 * 2 );
+			String directBinaryOf = Integer.toBinaryString( map.get( key ) + 128 );
+			String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
+			
+			glColor3f( 0, .3f, .3f );
+			glBegin( GL_QUADS );
+			for( char b : binaryOf.toCharArray() )
 			{
-				for( int k = 0; k < map[0][0].length; k++ )
+				if( b == '1' )
 				{
-					glPushMatrix();
-					
-					glTranslated( i * 2, k * 2, -j * 8 * 2 );
-					String directBinaryOf = Integer.toBinaryString( map[i][j][k] );
-					String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
-					for( char b : binaryOf.toCharArray() )
-					{
-						if( b == '1' ) cube();
-						glTranslated( 0, 0, -2 );
-					}
-					
-					glPopMatrix();
+					cube();
 				}
+				glTranslated( 0, 0, -2 );
+				cubeOffsetZ -= 2;
 			}
+			glEnd();
+			cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
+			
+			glColor3f( 0, 0, 0 );
+			glBegin( GL_LINES );
+			for( char b : binaryOf.toCharArray() )
+			{
+				if( b == '1' )
+				{
+					lineCube();
+				}
+				glTranslated( 0, 0, -2 );
+				cubeOffsetZ -= 2;
+			}
+			glEnd();
+
+			glPopMatrix();
+			cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
 		}
 		
 		glPopMatrix();
@@ -181,6 +204,13 @@ public class Engine
 		glVertex2d( -1, Display.getHeight() / 2 + 10 );
 		
 		glEnd();
+		
+		//	fps
+		glPushMatrix();
+		glTranslated( -Display.getWidth() / 2 + 50, Display.getHeight() - 150, 0 );
+		glScaled( 50, -50, 1 );
+		basicText( fps );
+		glPopMatrix();
 	}
 
 }
