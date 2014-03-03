@@ -4,6 +4,7 @@ import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Robot;
 import org.lwjgl.opengl.Display;
+import core.Engine;
 import static convenience.Utility.*;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
@@ -15,7 +16,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class Player
 {
 
-	private double xPos, yPos, zPos, camAngX, camAngY, turnSensitivity, turnSpeed, mouseSensitivity, moveSpeed;
+	public double xPos, yPos, zPos, camAngX, camAngY, turnSensitivity, turnSpeed, mouseSensitivity, moveSpeed;
 
 	private Robot mouseControl;
 
@@ -76,6 +77,16 @@ public class Player
 		
 		glRotated( camAngY, 1, 0, 0 );
 		glRotated( camAngX, 0, 1, 0 );
+		
+		//	block collision
+		if( xPos <= 0 && yPos <= 0 && zPos >= 0 )
+		{
+			while( Engine.map.get( (int)( ( -xPos + 100 ) / 2 / 150.) + "," + (int)( zPos / 150. / 16 ) + "," + (int)( -yPos / 2 / 150. ) ) != null && String.format( "%08d", Integer.valueOf( Integer.toBinaryString( Engine.map.get( (int)( ( -xPos + 100 ) / 2 / 150.) + "," + (int)( zPos / 150. / 2 / 8 ) + "," + (int)( -yPos / 2 / 150. ) ) + 128 ) ) ).toCharArray()[(int)(zPos / 150.) % 8] == '1' ) yPos -= 50;
+			yPos += 50;
+		}
+		
+		if( yPos > 0 ) yPos = 0;
+		
 		glTranslated( xPos, yPos, zPos );
 	}
 

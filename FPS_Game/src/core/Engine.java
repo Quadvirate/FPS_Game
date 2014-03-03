@@ -2,7 +2,6 @@ package core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import org.lwjgl.BufferUtils;
@@ -22,7 +21,7 @@ public class Engine
 
 	private boolean initComplete;
 	
-	private HashMap< String, Byte > map = new HashMap< String, Byte >();
+	public static HashMap< String, Byte > map = new HashMap< String, Byte >();
 
 	public void start()
 	{
@@ -39,7 +38,7 @@ public class Engine
 			}
 			mainLoop();
 			Display.update();
-			Display.sync( Integer.MAX_VALUE );
+			Display.sync( 60 );
 		}
 		Display.destroy();
 	}
@@ -118,12 +117,13 @@ public class Engine
 		{
 			System.out.println( "failed to load \"" + mapName + "\" map" );
 		}
+
 	}
-	
+
 	private void init()
 	{
 		testPlayer = new Player();
-		loadMap( "pinpoint_ish" );
+		loadMap( "pinpoint_ish_fps" );
 	}
 
 	private void mainLoop()
@@ -145,47 +145,62 @@ public class Engine
 		glScaled( 150, 150, 150 );
 		
 		glLineWidth( 3 );
-		
-		//	go throgh map
+		glColor3f( 0, .3f, .3f );
+		glBegin( GL_QUADS );
+
+		String[] binaryOf = new String[map.size()];
+		int at = 0;
 		for( String key : map.keySet() )
 		{
-			glPushMatrix();
-
-			String[] currStr = key.split( "," );
-			glTranslated( Integer.valueOf( currStr[0] ) * 2, Integer.valueOf( currStr[2] ) * 2, -Integer.valueOf( currStr[1] ) * 8 * 2 );
 			String directBinaryOf = Integer.toBinaryString( map.get( key ) + 128 );
-			String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
-			
-			glColor3f( 0, .3f, .3f );
-			glBegin( GL_QUADS );
-			for( char b : binaryOf.toCharArray() )
+			binaryOf[at] = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
+			at++ ;
+		}
+		at = 0;
+		//	go through map - blocks
+		for( String key : map.keySet() )
+		{
+			String[] currStr = key.split( "," );
+			cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
+			cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
+			cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
+
+			for( char b : binaryOf[at].toCharArray() )
 			{
 				if( b == '1' )
 				{
 					cube();
 				}
-				glTranslated( 0, 0, -2 );
 				cubeOffsetZ -= 2;
 			}
-			glEnd();
-			cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
-			
-			glColor3f( 0, 0, 0 );
-			glBegin( GL_LINES );
-			for( char b : binaryOf.toCharArray() )
+			at++ ;
+		}
+		cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
+		glEnd();
+
+		glColor3f( 0, 0, 0 );
+		glBegin( GL_LINES );
+		at = 0;
+		//	go through map - lines
+		for( String key : map.keySet() )
+		{
+			String[] currStr = key.split( "," );
+			cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
+			cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
+			cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
+
+			for( char b : binaryOf[at].toCharArray() )
 			{
 				if( b == '1' )
 				{
 					lineCube();
 				}
-				glTranslated( 0, 0, -2 );
 				cubeOffsetZ -= 2;
 			}
-			glEnd();
-
-			glPopMatrix();
-			cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
+			at++ ;
 		}
+		cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
+		glEnd();
 		
 		glPopMatrix();
 		
@@ -211,6 +226,7 @@ public class Engine
 		glScaled( 50, -50, 1 );
 		basicText( fps );
 		glPopMatrix();
+		
 	}
 
 }
