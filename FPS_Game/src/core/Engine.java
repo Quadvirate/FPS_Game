@@ -1,7 +1,12 @@
 package core;
 
+import static convenience.Utility.*;
+import static org.lwjgl.opengl.GL11.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import org.lwjgl.BufferUtils;
@@ -10,18 +15,20 @@ import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.newdawn.slick.opengl.Texture;
+import org.newdawn.slick.opengl.TextureLoader;
 import player.Player;
-import static org.lwjgl.opengl.GL11.*;
-import static convenience.Utility.*;
 
 public class Engine
 {
-	
+
 	public Player testPlayer;
 
 	private boolean initComplete;
-	
-	public static HashMap< String, Byte > map = new HashMap< String, Byte >();
+
+	private ArrayList<Texture> textures = new ArrayList<Texture>();
+
+	private ArrayList<HashMap< String, Byte >> map = new ArrayList<HashMap< String, Byte >>();
 
 	public void start()
 	{
@@ -42,7 +49,7 @@ public class Engine
 		}
 		Display.destroy();
 	}
-	
+
 	public void setNatives()
 	{
 		String os = System.getProperty( "os.name" );
@@ -86,7 +93,9 @@ public class Engine
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LEQUAL );
 		glCullFace( GL_BACK );
-		
+		glEnable( GL_CULL_FACE );
+		glEnable( GL_TEXTURE_2D );
+
 		//	Invisible mouse
 		Cursor emptyCursor = null;
 		try
@@ -94,7 +103,8 @@ public class Engine
 			emptyCursor = new Cursor( 1, 1, 0, 0, 1, BufferUtils.createIntBuffer( 1 ), null );
 			Mouse.setNativeCursor( emptyCursor );
 		}
-		catch( LWJGLException e1 ){}
+		catch( LWJGLException e1 )
+		{}
 	}
 
 	private void loadMap( String mapName )
@@ -107,8 +117,17 @@ public class Engine
 			{
 				//	load map
 				String[] currStr = mapReader.nextLine().split( "," );
-				byte val = Byte.valueOf( currStr[1] );
-				map.put( currStr[2] + "," + currStr[3] + "," + currStr[4], val );
+				switch( currStr[0].toCharArray()[0] )
+				{
+					case 'v':
+						byte val = Byte.valueOf( currStr[1] );
+						if( map.size() == 0 ) map.add( new HashMap<String, Byte>() );
+						map.get( map.size() - 1 ).put( currStr[2] + "," + currStr[3] + "," + currStr[4], val );
+						break;
+					case 't':
+						map.add( new HashMap<String, Byte>() );
+						loadTexture( currStr[1] );
+				}
 			}
 			mapReader.close();
 			System.out.println( "\"" + mapName + "\" map loaded" );
@@ -117,7 +136,25 @@ public class Engine
 		{
 			System.out.println( "failed to load \"" + mapName + "\" map" );
 		}
+	}
 
+	private void loadTexture( String textureName ) //load the texture into a texture file. One texture per map currently
+	{
+		try
+		{
+			//load texture into a variable
+			textures.add( TextureLoader.getTexture( "PNG", new FileInputStream( "res/" + textureName + ".png" ) ) );
+			textures.get( textures.size() - 1 ).bind();
+			System.out.println( textureName + " Texture loaded" );
+		}
+		catch( FileNotFoundException e )
+		{
+			System.out.println( textureName + "not found" );
+		}
+		catch( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private void init()
@@ -130,103 +167,96 @@ public class Engine
 	{
 		//	track fps
 		manageFPS();
-		
+
 		//	background red
 		glClearColor( .4f, .4f, .4f, 1 );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		
+
 		//	draw map
 		glPushMatrix();
-		
+
 		//	move player
 		testPlayer.move();
-		
+
 		//	block size
 		glScaled( 150, 150, 150 );
-		
+
 		glLineWidth( 3 );
-		glColor3f( 0, .3f, .3f );
-		glBegin( GL_QUADS );
 
-		String[] binaryOf = new String[map.size()];
+		//	go through map
 		int at = 0;
-		for( String key : map.keySet() )
+		for( HashMap<String, Byte> m : map )
 		{
-			String directBinaryOf = Integer.toBinaryString( map.get( key ) + 128 );
-			binaryOf[at] = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
-			at++ ;
-		}
-		at = 0;
-		//	go through map - blocks
-		for( String key : map.keySet() )
-		{
-			String[] currStr = key.split( "," );
-			cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
-			cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
-			cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
-
-			for( char b : binaryOf[at].toCharArray() )
+			for( String key : m.keySet() )
 			{
-				if( b == '1' )
+				glPushMatrix();
+	
+				String[] currStr = key.split( "," );
+				glTranslated( Integer.valueOf( currStr[0] ) * 2, Integer.valueOf( currStr[2] ) * 2, -Integer.valueOf( currStr[1] ) * 8 * 2 );
+				String directBinaryOf = Integer.toBinaryString( m.get( key ) + 128 );
+				String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
+	
+				//glColor3f( 0, .3f, .3f );
+				glColor3d( .8, .8, .8 );
+				glBindTexture( GL_TEXTURE_2D, at + 1 );
+				glBegin( GL_QUADS );
+				for( char b : binaryOf.toCharArray() )
 				{
-					cube();
+					if( b == '1' )
+					{
+						cube();
+					}
+					glTranslated( 0, 0, -2 );
+					cubeOffsetZ -= 2;
 				}
-				cubeOffsetZ -= 2;
-			}
-			at++ ;
-		}
-		cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
-		glEnd();
-
-		glColor3f( 0, 0, 0 );
-		glBegin( GL_LINES );
-		at = 0;
-		//	go through map - lines
-		for( String key : map.keySet() )
-		{
-			String[] currStr = key.split( "," );
-			cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
-			cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
-			cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
-
-			for( char b : binaryOf[at].toCharArray() )
-			{
-				if( b == '1' )
+				glEnd();
+				cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
+				
+				glBindTexture( GL_TEXTURE_2D, 0 );
+				
+				glColor3f( 0, 0, 0 );
+				glBegin( GL_LINES );
+				for( char b : binaryOf.toCharArray() )
 				{
-					lineCube();
+					if( b == '1' )
+					{
+						lineCube();
+					}
+					glTranslated( 0, 0, -2 );
+					cubeOffsetZ -= 2;
 				}
-				cubeOffsetZ -= 2;
+				glEnd();
+	
+				glPopMatrix();
+				cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
 			}
-			at++ ;
+			at++;
 		}
-		cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
-		glEnd();
 		
 		glPopMatrix();
-		
+
 		//	cross hare
 		glColor3f( 0, 0, 0 );
 		glBegin( GL_QUADS );
-		
+
 		glVertex2d( -10, Display.getHeight() / 2 - 1 );
 		glVertex2d( 10, Display.getHeight() / 2 - 1 );
 		glVertex2d( 10, Display.getHeight() / 2 + 1 );
 		glVertex2d( -10, Display.getHeight() / 2 + 1 );
-		
+
 		glVertex2d( -1, Display.getHeight() / 2 - 10 );
 		glVertex2d( 1, Display.getHeight() / 2 - 10 );
 		glVertex2d( 1, Display.getHeight() / 2 + 10 );
 		glVertex2d( -1, Display.getHeight() / 2 + 10 );
-		
+
 		glEnd();
-		
+
 		//	fps
 		glPushMatrix();
 		glTranslated( -Display.getWidth() / 2 + 50, Display.getHeight() - 150, 0 );
 		glScaled( 50, -50, 1 );
 		basicText( fps );
 		glPopMatrix();
-		
 	}
 
 }
