@@ -1,6 +1,7 @@
 package convenience;
 
 import static org.lwjgl.opengl.GL11.*;
+
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 
@@ -38,39 +39,69 @@ public class Utility
 //		glBegin( GL_QUADS );
 
 //		glNormal3d( 0, 1, 0 );
+		//	top
+		glTexCoord2d( 0, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
 
 //		glNormal3d( 0, -1, 0 );
+		//	bottom
+		glTexCoord2d( 0, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
 
 //		glNormal3d( 0, 0, 1 );
+		//	near
+		glTexCoord2d( 0, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
 
 //		glNormal3d( 0, 0, -1 );
+		//	far
+		glTexCoord2d( 0, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
 
 //		glNormal3d( -1, 0, 0 );
+		//	left
+		glTexCoord2d( 0, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 0 );
 		glVertex3f( -1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 1 );
 		glVertex3f( -1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
 
 //		glNormal3d( 1, 0, 0 );
+		//	right
+		glTexCoord2d( 1, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 0 );
 		glVertex3f( 1.0f + cubeOffsetX, 1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 0, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, 1.0f + cubeOffsetZ );
+		glTexCoord2d( 1, 1 );
 		glVertex3f( 1.0f + cubeOffsetX, -1.0f + cubeOffsetY, -1.0f + cubeOffsetZ );
 
 //		glEnd();
