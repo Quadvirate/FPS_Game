@@ -26,9 +26,9 @@ public class Engine
 
 	private boolean initComplete;
 
-	private ArrayList<Texture> textures = new ArrayList<Texture>();
+	private ArrayList< Texture > textures = new ArrayList< Texture >();
 
-	private ArrayList<HashMap< String, Byte >> map = new ArrayList<HashMap< String, Byte >>();
+	public static ArrayList< HashMap< String, Byte >> map = new ArrayList< HashMap< String, Byte >>();
 
 	public void start()
 	{
@@ -121,11 +121,11 @@ public class Engine
 				{
 					case 'v':
 						byte val = Byte.valueOf( currStr[1] );
-						if( map.size() == 0 ) map.add( new HashMap<String, Byte>() );
+						if( map.size() == 0 ) map.add( new HashMap< String, Byte >() );
 						map.get( map.size() - 1 ).put( currStr[2] + "," + currStr[3] + "," + currStr[4], val );
 						break;
 					case 't':
-						map.add( new HashMap<String, Byte>() );
+						map.add( new HashMap< String, Byte >() );
 						loadTexture( currStr[1] );
 				}
 			}
@@ -185,21 +185,22 @@ public class Engine
 
 		//	go through map
 		int at = 0;
-		for( HashMap<String, Byte> m : map )
+		for( HashMap< String, Byte > m : map )
 		{
+			glColor3d( .8, .8, .8 );
+			glBindTexture( GL_TEXTURE_2D, at + 1 );
+			glBegin( GL_QUADS );
 			for( String key : m.keySet() )
 			{
 				glPushMatrix();
-	
+
 				String[] currStr = key.split( "," );
-				glTranslated( Integer.valueOf( currStr[0] ) * 2, Integer.valueOf( currStr[2] ) * 2, -Integer.valueOf( currStr[1] ) * 8 * 2 );
+				cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
+				cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
+				cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
 				String directBinaryOf = Integer.toBinaryString( m.get( key ) + 128 );
 				String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
-	
-				//glColor3f( 0, .3f, .3f );
-				glColor3d( .8, .8, .8 );
-				glBindTexture( GL_TEXTURE_2D, at + 1 );
-				glBegin( GL_QUADS );
+
 				for( char b : binaryOf.toCharArray() )
 				{
 					if( b == '1' )
@@ -209,13 +210,23 @@ public class Engine
 					glTranslated( 0, 0, -2 );
 					cubeOffsetZ -= 2;
 				}
-				glEnd();
-				cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
-				
-				glBindTexture( GL_TEXTURE_2D, 0 );
-				
-				glColor3f( 0, 0, 0 );
-				glBegin( GL_LINES );
+			}
+			glEnd();
+
+			glBindTexture( GL_TEXTURE_2D, 0 );
+			glColor3d( 0, 0, 0 );
+			glBegin( GL_LINES );
+			for( String key : m.keySet() )
+			{
+				glPushMatrix();
+
+				String[] currStr = key.split( "," );
+				cubeOffsetX = Integer.valueOf( currStr[0] ) * 2;
+				cubeOffsetY = Integer.valueOf( currStr[2] ) * 2;
+				cubeOffsetZ = -Integer.valueOf( currStr[1] ) * 8 * 2;
+				String directBinaryOf = Integer.toBinaryString( m.get( key ) + 128 );
+				String binaryOf = String.format( "%08d", Integer.valueOf( directBinaryOf ) );
+
 				for( char b : binaryOf.toCharArray() )
 				{
 					if( b == '1' )
@@ -225,14 +236,12 @@ public class Engine
 					glTranslated( 0, 0, -2 );
 					cubeOffsetZ -= 2;
 				}
-				glEnd();
-	
-				glPopMatrix();
-				cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
 			}
-			at++;
+			glEnd();
+			at++ ;
+			cubeOffsetX = cubeOffsetY = cubeOffsetZ = 0;
 		}
-		
+
 		glPopMatrix();
 
 		//	cross hare
