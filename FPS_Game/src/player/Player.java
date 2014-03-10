@@ -3,9 +3,9 @@ package player;
 import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Robot;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
-import core.Engine;
-import static convenience.Utility.*;
+import static convenience.KeyboardUtils.*;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
@@ -42,6 +42,11 @@ public class Player
 
 	public void move()
 	{
+		//	zoom testing
+		turnSpeed = Mouse.isButtonDown( 1 ) ? 60 : 15;
+		moveSpeed = Mouse.isButtonDown( 1 ) ? 20 : 50;
+		
+		
 		//	turning algorithm
 		double camAng = toRadians( camAngX + 90 );
 		if( keyPressed( "w" ) )

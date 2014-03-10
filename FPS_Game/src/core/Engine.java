@@ -1,6 +1,9 @@
 package core;
 
-import static convenience.Utility.*;
+import static convenience.KeyboardUtils.*;
+import static convenience.FPSUtils.*;
+import static convenience.DisplayUtils.*;
+import static convenience.TextUtils.*;
 import static org.lwjgl.opengl.GL11.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -162,9 +165,31 @@ public class Engine
 		testPlayer = new Player();
 		loadMap( "pinpoint_ish_fps" );
 	}
-
+	
+	double offset = 1;
+	
 	private void mainLoop()
 	{
+		
+		//	scaling zoom testing
+		
+		//	offset far plane
+//		glMatrixMode( GL_PROJECTION );
+//		glLoadIdentity();
+//		glFrustum( -Display.getWidth() / 2, Display.getWidth() / 2, -Display.getHeight() / 2, Display.getHeight() / 2, Display.getWidth() * 2 + offset, Display.getWidth() * 100 );
+//		glTranslated( 0, -Display.getHeight() / 2, -Display.getWidth() * 2 - .1 );
+//		glMatrixMode( GL_MODELVIEW );
+		
+		//	scale width / height
+		glMatrixMode( GL_PROJECTION );
+		glLoadIdentity();
+		glFrustum( -Display.getWidth() / 2 * offset, Display.getWidth() / 2 * offset, -Display.getHeight() / 2 * offset, Display.getHeight() / 2 * offset, Display.getWidth() * 2, Display.getWidth() * 100 );
+		glTranslated( 0, -Display.getHeight() / 2, -Display.getWidth() * 2 - .1 );
+		glMatrixMode( GL_MODELVIEW );
+		
+		//	lower : farther zoom
+		offset = Mouse.isButtonDown( 1 ) ? .5 : 1;
+		
 		//	track fps
 		manageFPS();
 
@@ -259,6 +284,17 @@ public class Engine
 		glVertex2d( -1, Display.getHeight() / 2 + 10 );
 
 		glEnd();
+		
+		//	zoom seight circle
+		if( Mouse.isButtonDown( 1 ) )
+		{
+			glBegin( GL_LINE_LOOP );
+			for( int i = 0; i < 30; i++ )
+			{
+				glVertex2d( Math.cos( Math.toRadians( i * 360 / 30 ) ) * 12, Display.getHeight() / 2 + Math.sin( Math.toRadians( i * 360 / 30 ) ) * 12 );
+			}
+			glEnd();
+		}
 
 		//	fps
 		glPushMatrix();
