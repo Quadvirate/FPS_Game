@@ -5,10 +5,7 @@ import java.awt.MouseInfo;
 import java.awt.Robot;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
-<<<<<<< HEAD
 import core.Engine;
-=======
->>>>>>> origin/Class_Stuff
 import static convenience.KeyboardUtils.*;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
