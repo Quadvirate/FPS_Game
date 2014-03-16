@@ -3,9 +3,10 @@ package player;
 import java.awt.AWTException;
 import java.awt.MouseInfo;
 import java.awt.Robot;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import core.Engine;
-import static convenience.Utility.*;
+import static convenience.KeyboardUtils.*;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
@@ -30,7 +31,7 @@ public class Player
 		mouseSensitivity = 0; // default 20 ( box for mouse to move in )
 
 		//	regular
-		moveSpeed = 50; // default 50
+		moveSpeed = .15; // default .5
 
 		try
 		{
@@ -42,27 +43,32 @@ public class Player
 
 	public void move()
 	{
+		//	zoom testing
+		turnSpeed = Mouse.isButtonDown( 1 ) ? 60 : 15;
+		moveSpeed = Mouse.isButtonDown( 1 ) ? .15 * 2 / 5 : .15;
+		
+		
 		//	turning algorithm
 		double camAng = toRadians( camAngX + 90 );
 		if( keyPressed( "w" ) )
 		{
 			zPos += ( sin( camAng ) ) * moveSpeed;
-			xPos += cos( camAng ) * moveSpeed;
+			xPos -= cos( camAng ) * moveSpeed;
 		}
 		if( keyPressed( "a" ) )
 		{
 			zPos += ( sin( camAng - PI / 2 ) ) * moveSpeed;
-			xPos += cos( camAng - PI / 2 ) * moveSpeed;
+			xPos -= cos( camAng - PI / 2 ) * moveSpeed;
 		}
 		if( keyPressed( "s" ) )
 		{
 			zPos -= ( sin( camAng ) ) * moveSpeed;
-			xPos -= cos( camAng ) * moveSpeed;
+			xPos += cos( camAng ) * moveSpeed;
 		}
 		if( keyPressed( "d" ) )
 		{
 			zPos -= ( sin( camAng - PI / 2 ) ) * moveSpeed;
-			xPos -= cos( camAng - PI / 2 ) * moveSpeed;
+			xPos += cos( camAng - PI / 2 ) * moveSpeed;
 		}
 
 		//	moving algorithm
@@ -78,18 +84,17 @@ public class Player
 		glRotated( camAngY, 1, 0, 0 );
 		glRotated( camAngX, 0, 1, 0 );
 
-		//	block collision IMPOSSIBRU
-//		if( xPos <= 0 && yPos <= 0 && zPos >= 0 )
-//		{
-//			for( int i = 0; i < Engine.map.size(); i++ )
-//				while( Engine.map.get( i ).get( (int) ( ( -xPos + 100 ) / 2 / 150. ) + "," + (int) ( zPos / 150. / 16 ) + "," + (int) ( -yPos / 2 / 150. ) ) != null && String.format( "%08d", Integer.valueOf( Integer.toBinaryString( Engine.map.get( i ).get( (int) ( ( -xPos + 100 ) / 2 / 150. ) + "," + (int) ( zPos / 150. / 2 / 8 ) + "," + (int) ( -yPos / 2 / 150. ) ) + 128 ) ) ).toCharArray()[(int) ( zPos / 150. ) % 8] == '1' )
-//					yPos -= 50;
-//			yPos += 50;
-//		}
-//
-//		if( yPos > 0 ) yPos = 0;
+		//	block collision
+		if( xPos >= 0 && yPos >= 0 && zPos >= 0 )
+		{
+			for( int i = 0; i < Engine.map.size(); i++ )
+				//while( Engine.map.get( i ).get( (int) ( ( -xPos + 100 ) / 2 / 150. ) + "," + (int) ( zPos / 150. / 16 ) + "," + (int) ( -yPos / 2 / 150. ) ) != null && String.format( "%08d", Integer.valueOf( Integer.toBinaryString( Engine.map.get( i ).get( (int) ( ( -xPos + 100 ) / 2 / 150. ) + "," + (int) ( zPos / 150. / 2 / 8 ) + "," + (int) ( -yPos / 2 / 150. ) ) + 128 ) ) ).toCharArray()[(int) ( zPos / 150. ) % 8] == '1' )
+				while( Engine.map.get( i ).get( (int) ( xPos - 1 ) + "," + (int) ( ( zPos ) / 8 ) + "," + (int) yPos ) != null && String.format( "%08d", Integer.valueOf( Integer.toBinaryString( Engine.map.get( i ).get( (int) ( xPos - 1 ) + "," + (int) ( ( zPos ) / 8 ) + "," + (int) yPos ) + 128 ) ) ).toCharArray()[(int) ( ( zPos ) ) % 8] == '1' )
+					yPos++;
+			if( yPos > 0 ) yPos--;
+		}
 
-		glTranslated( xPos, yPos, zPos );
+		glTranslated( -xPos * 150 * 2, -yPos * 150 * 2 - 150, zPos * 150 * 2 );
 	}
 
 }
